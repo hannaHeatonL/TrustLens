@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "TrustLens",
+  "version": "1.0",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "*://www.facebook.com/*",
+    "*://facebook.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://www.facebook.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

@@ -1,0 +1,163 @@
+/* Base */
+body {
+    font-family: "Poppins", sans-serif;
+    width: 320px;
+    margin: 0;
+    padding: 14px;
+    background: radial-gradient(circle at top, #eef2ff, #e0e7ff, #f8fafc);
+    color: #1f2937;
+}
+
+/* Glass Container */
+.container {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Brand Header */
+.brand-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.logo {
+    font-size: 24px;
+    margin-right: 10px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+.brand-name {
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(90deg, #4f46e5, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+    margin: 10px 0 14px 0;
+}
+
+/* Titles */
+h1 {
+    text-align: center;
+    font-size: 17px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+h2 {
+    font-size: 15px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+/* Text */
+p {
+    margin: 6px 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Risk Box */
+.risk-box {
+    padding: 12px;
+    border-radius: 12px;
+    margin: 12px 0;
+    font-weight: 600;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glow animation */
+.risk-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(255,255,255,0.4), transparent);
+    opacity: 0.6;
+}
+
+/* Low Risk */
+.low-risk {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+/* Medium Risk */
+.medium-risk {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+/* High Risk */
+.high-risk {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    color: #7f1d1d;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+    animation: pulseGlow 2s infinite;
+}
+
+/* Pulse animation for high risk */
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.6); }
+    100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+}
+
+/* List styling */
+ul {
+    padding-left: 18px;
+    margin-top: 8px;
+}
+
+li {
+    margin-bottom: 6px;
+    font-size: 13px;
+    position: relative;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb; /* subtle divider line */
+}
+
+/* Remove divider from last item */
+li:last-child {
+    border-bottom: none;
+}
+
+/* Custom bullet */
+li::marker {
+    color: #6366f1;
+}
+
+/* Small text */
+.small-text {
+    font-size: 11px;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 12px;
+}
+
+/* Hover interactions */
+.risk-box:hover {
+    transform: translateY(-2px) scale(1.01);
+}
+
+/* Smooth everything */
+* {
+    transition: all 0.2s ease;
+}
