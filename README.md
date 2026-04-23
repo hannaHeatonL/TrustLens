@@ -4,7 +4,7 @@ TrustLens is a Chrome extension that analyzes Facebook Marketplace listings and 
 The goal of the system is to help users quickly identify potentially risky listings and make more informed purchasing decisions.
 
 /* =========================================================
-   TRUSTLENS SYSTEM NOTE
+TRUSTLENS SYSTEM NOTE
 
    Some scoring rules depend on Facebook seller data
    (account age and rating).
@@ -15,7 +15,7 @@ The goal of the system is to help users quickly identify potentially risky listi
    - Only visible listing data is used (title, description, etc.)
 
    System continues normally with reduced feature set.
-========================================================= */
+   ========================================================= */
 
 To install and run the extension locally:
 
