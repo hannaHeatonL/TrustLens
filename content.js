@@ -17,8 +17,10 @@ function updateListingData() {
     // --------------------
 
     let title =
-        scope.querySelector("h1[aria-hidden='false'] span")?.innerText.trim()
-        || "Not found";
+        // for some reason sometime the title is a different html selector so look for both
+        scope.querySelector("h1[aria-hidden='false'] span")?.innerText.trim() ||
+        scope.querySelector("h1[dir='auto'] span")?.innerText.trim() || 
+        "Not found";
 
     console.log("title:", title);
 
@@ -325,7 +327,8 @@ function waitForListingLoad() {
 
         // Look for the correct title element within the proper scope
         let titleElement =
-            scope.querySelector("h1[aria-hidden='false'] span");
+            scope.querySelector("h1[aria-hidden='false'] span") ||
+            scope.querySelector("h1[dir='auto'] span");
 
         // If title exists, page is ready
         if (titleElement) {
