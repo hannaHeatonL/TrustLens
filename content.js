@@ -57,6 +57,7 @@ function updateListingData() {
     let sellerRating = "Not found";
     let accountAge = "Not found";
 
+    // Looping through spans to identify relevant seller info (age, rating)
     infoSpans.forEach(span => {
         let text = span.innerText.trim();
 
@@ -72,18 +73,27 @@ function updateListingData() {
     console.log("seller rating:", sellerRating);
     console.log("account age:", accountAge);
 
+    // --------------------
+    // RISK SCORE CALCULATION
+    // --------------------
+    
     // start calculating risk score based on the extracted data
-    // risk score is a scale from 1-5 with 1 being low risk and 5 being high risk, and is calculated based on a set of rules:
+    // risk score is a scale from 1-5 with 1 being low risk and 5 being high risk, 
+    // and is calculated based on a set of rules:
     let riskScore = 0;
     let reasons = [];
     const currentYear = new Date().getFullYear();
 
-    // Normalize values (IMPORTANT FIX)
+    // Normalize text for easier comparison (lowercase)
     let descriptionText = (description || "").toLowerCase();
     let listingText = (listingAge || "").toLowerCase();
     let accountText = (accountAge || "").toLowerCase();
 
-    // Account + listing logic
+    // --------------------
+    // ACCOUNT + LISTING RULES
+    // --------------------
+
+    // If seller account is from this year
     if (accountText.includes(currentYear.toString()) && listingText !== "not found") {
 
         // Rule 3: New account + very recent listing
@@ -91,21 +101,23 @@ function updateListingData() {
             listingText.includes("hour") ||
             listingText.includes("day")
         ) {
+            // High risk: brand-new account + fresh listing
             riskScore += 4;
             reasons.push("Listing was posted recently by a brand-new account.");
         } else {
+            // Medium risk: new account
             riskScore += 2;
             reasons.push("New Seller account.");
         }
     }
 
-    // Previous year account
+    // If account is from last year → slight risk
     if (accountText.includes((currentYear - 1).toString())) {
         riskScore += 1;
         reasons.push("Relatively new seller, created last year.");
     }
 
-    // Trusted seller
+    // If seller is highly rated → reduce risk
     if (sellerRating.includes("Highly rated")) {
         riskScore -= 4;
         reasons.push("Trusted Seller.");
@@ -117,7 +129,8 @@ function updateListingData() {
     // --------------------
 
     if (descriptionText && descriptionText !== "not found") {
-
+        
+        // Define keyword groups by risk level
         const highRiskKeywords = [
             "deposit",
             "pay first",
@@ -146,11 +159,13 @@ function updateListingData() {
             "venmo"
         ];
         
+        // Convert wildcard patterns (*) into regex
         function wildcardToRegex(pattern) {
             let escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
             return new RegExp(escaped.replace(/\\\*/g, ".*"), "i");
         }
 
+        // Match keywords against description
         function matchKeywords(keywords) {
             return keywords.filter(k =>
                 k.includes("*")
@@ -159,6 +174,7 @@ function updateListingData() {
             );
         }
 
+        // Get matches for each risk level
         const matchedHigh = matchKeywords(highRiskKeywords);
         const matchedMedium = matchKeywords(mediumRiskKeywords);
         const matchedLow = matchKeywords(lowRiskKeywords);
@@ -167,6 +183,7 @@ function updateListingData() {
         const hasMedium = matchedMedium.length > 0;
         const hasLow = matchedLow.length > 0;
 
+        // Apply scoring rules based on combinations
         if (hasHigh && (hasMedium || hasLow)) {
             riskScore += 3;
             reasons.push("Multiple high-risk signals in description.");
@@ -174,6 +191,7 @@ function updateListingData() {
             riskScore += 2;
             reasons.push("Several risk indicators present in description.");
         } else {
+            // Add weighted scores based on matches
             riskScore += matchedHigh.length * 1.5;
             riskScore += matchedMedium.length;
             riskScore += matchedLow.length * 0.5;
@@ -187,24 +205,27 @@ function updateListingData() {
             }
         }
         
-        // testing block
-        //console.log("Matched High:", matchedHigh);
-        //console.log("Matched Medium:", matchedMedium);
-        //console.log("Matched Low:", matchedLow);
+        // Debug logging
+        console.log("Matched High:", matchedHigh);
+        console.log("Matched Medium:", matchedMedium);
+        console.log("Matched Low:", matchedLow);
 
-        // punctuation check
+        // Check for suspicious punctuation patterns
         const punctuationPatterns = [
-            /([a-zA-Z]),([a-zA-Z])/,
-            /(\w)\s+,/
+            /([a-zA-Z]),([a-zA-Z])/, // missing space after comma
+            /(\w)\s+,/               // extra space before comma
         ];
 
         let punctuationMatches = punctuationPatterns.some(p =>
             p.test(descriptionText)
         );
 
+        // Add small risk for messy formatting
         if (punctuationMatches) {
             riskScore += 1;
 
+            // If seller is highly rated and there are some punctuation errors, 
+            // ignore them and dont push formatting issues to reasons
             if (!sellerRating.includes("Highly rated")) {
                 reasons.push("Irregular formatting in description.");
             }
@@ -212,15 +233,16 @@ function updateListingData() {
     }
 
     // --------------------
-    // FINAL SCORE
+    // FINAL SCORE NORMALIZATION
     // --------------------
 
+    // Clamp score between 0 and 5
     if (riskScore < 0) riskScore = 0;
     if (riskScore > 5) riskScore = 5;
 
     let assessmentMessage = "";
 
-    // Final interpretation of the score
+    // Convert numeric score into human-readable label
     if (riskScore === 0) {
         assessmentMessage = "✅ No Risk";
     }
@@ -239,6 +261,7 @@ function updateListingData() {
     // FINAL OBJECT
     // --------------------
 
+    // Bundle all extracted + computed data
     const finalData = {
         title,
         price,
@@ -251,6 +274,7 @@ function updateListingData() {
         assessmentMessage
     };
 
+    // Send data to background/popup script
     try {
         chrome.runtime.sendMessage({ listingData: finalData });
     } catch (e) {
@@ -265,17 +289,21 @@ updateListingData();
 // OBSERVER SETUP
 // --------------------
 
+// Target main Facebook container
 const targetNode = document.querySelector("#mount_0_0");
+// Watch for DOM changes (new listings, updates, etc.)
 const config = { childList: true, subtree: true };
 
 let lastUrl = location.href;
 
+// Re-run extraction when page content updates (but URL stays same)
 const observer = new MutationObserver(() => {
     if (location.href === lastUrl) {
         updateListingData();
     }
 });
 
+// Start observing if target exists
 if (targetNode) observer.observe(targetNode, config);
 
 
@@ -283,27 +311,37 @@ if (targetNode) observer.observe(targetNode, config);
 // LISTING CHANGE DETECTION
 // --------------------
 
+// Wait for new listing content to fully load before extracting
 function waitForListingLoad() {
     let attempts = 0;
 
     const check = setInterval(() => {
 
-        let title =
-            document.querySelector("h1 span") ||
-            document.querySelector("h1[tabindex='-1'] span");
+        // Look for title element as signal content is ready
+        const viewer = document.querySelector(
+            'div[aria-label="Marketplace Listing Viewer"]'
+        );
+        const scope = viewer || document;
 
-        if (title) {
+        // Look for the correct title element within the proper scope
+        let titleElement =
+            scope.querySelector("h1[aria-hidden='false'] span");
+
+        // If title exists, page is ready
+        if (titleElement) {
             console.log("New listing detected, updating data.");
             updateListingData();
             clearInterval(check);
         }
 
         attempts++;
+        // Stop trying after ~6 seconds (15 * 400ms)
         if (attempts > 15) clearInterval(check);
 
     }, 400);
 }
 
+// Check if URL changes (user clicked a new listing)
 setInterval(() => {
 
     if (location.href !== lastUrl) {
